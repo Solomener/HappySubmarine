@@ -12,6 +12,16 @@ var gameState = 0;
 var canvas;
 var context;
 
+// 音乐播放器
+var bg_music;
+var click_music;
+var explosion_music;
+var button_click_music;
+var getScore_music;
+var game_over_music;
+var new_score_music;
+var get_life_music;
+
 var bomb_img_width = 40;
 var bomb_img_height = 20;
 var submarine_img_width = 135;
@@ -24,12 +34,16 @@ var startY = (H-160)*3/5;
 var helpImg = getImage("img/question_mark_-sheet0.png");
 var helpX = W-200;
 var helpY = H*5/7;
-var soundImg = getImage("img/button_sounds-sheet1.png");
+var soundImg = getImage("img/button_sounds-sheet0.png");
 var soundX = 100;
 var soundY = H*5/7;
 var titleImg = getImage("img/logo_-sheet0.png");
 var logo = getImage("img/icon-256.png");
 var bg = getImage("img/tiledbackground.png");
+var gameOverImg = getImage("img/over_-sheet0.png");
+var retryImg = getImage("img/again_button-sheet0.png");
+var retryX = (W-233)*11/12;
+var retryY = (H-232)/2;
 
 // 说明书是否显示
 var isHelpText = false;
@@ -42,11 +56,19 @@ var gameTimer = null;
 var bgBottom = new BgBottom();
 var submarine = new Submarine();
 var bombs = [];
+var heart = new Heart();
+var trap = new Trap();
+var particles = [];
 var score = 0;
 var historyScore = localStorage.getItem("HappySubmarine_ouyang_score");
-// 潜艇碰撞顶部或者底部可否再加载动画
+// 潜艇碰撞顶部或者底部是否已经加载过动画
 var upEx = false;
 var downEx = false;
+// 结束音乐是否已经播放
+var isplayed = false;
+
+// 音效是否打开
+var soundOn = false;
 
 var scoreImg = getImage("img/score.png");
 // 获取image对象
@@ -135,6 +157,7 @@ function Submarine(){
 			this.frameNum = 6;
 			this.frameStart = 0;
 		}else{
+			this.life = -10;
 			this.frameNum = 1;
 			this.frameStart = 12;
 		}
@@ -253,5 +276,87 @@ function paintNum(x, y, num){
 	}
 	for(var i = 0; i < sx.length; i++){
 		context.drawImage(img, sx[i], 0, w, h, x + i*(w-62), y, 45, 50);
+	}
+}
+
+// 生成爱心
+function Heart(){
+	this.w = 41;
+	this.h = 38;
+	this.x = Math.random()*(W-200)+W+200;
+	this.y = Math.random()*(H-this.h-100);
+	this.vx = 2;
+	this.visiable = true;
+	// 相当于计时，多长时间后心重新显示
+	this.time = 0;
+	
+	this.img = getImage("img/heart-sheet0.png");
+	this.drawHeart = function(){
+		if(this.visiable){
+			context.drawImage(this.img, this.x, this.y, this.w, this.h);
+		}
+	}
+	this.move = function(){
+		// 计时
+		if(this.time < 1220){
+			this.time++;
+		}else{
+			this.time = 0;
+			// 初始化位置
+			this.x = Math.random()*(W-200)+W+200;
+			this.y = Math.random()*(H-this.h-100);
+			this.visiable = true;
+		}
+		// 移动
+		if(this.visiable){
+			this.x -= this.vx;
+		}
+	}
+}
+// 生成陷阱
+function Trap(){
+	this.img = getImage("img/minechain-sheet0.png");
+	this.w = 62.4;
+	this.h = 76.7*1.2;
+	this.x = Math.random()*(W-100) + W;
+	this.y = H - 120;
+	this.vx = 2;
+	this.time = 0;
+	this.move = function(){
+		if(this.time < 1182){
+			this.time++;
+		}else{
+			this.time = 0;
+			this.x = Math.random()*(W-100) + W;
+		}
+		this.x -= this.vx;
+	}
+	this.drawTrap = function(){
+		context.drawImage(this.img, this.x, this.y, this.w, this.h);
+	}
+}
+
+var particlesImg = [];
+var sizes = [35,10];
+var vy = [4, 2];
+particlesImg.push(getImage("img/particles.png"));
+particlesImg.push(getImage("img/particles2.png"));
+
+// 生成背景泡泡
+function Particle(){
+	this.x = Math.random()*W+20;
+	this.y = Math.random()*H;
+	var i = Math.floor(Math.random()*2);
+	this.vy = vy[i];
+	this.img = particlesImg[i];
+	this.size = sizes[i];
+	this.move = function(){
+		this.y -= this.vy;
+		this.x -= 2;
+	}
+	this.drawParticle = function(){
+		context.globalAlpha = 0.2;
+		context.drawImage(this.img,this.x, this.y, this.size, this.size);
+		context.globalAlpha = 1;
 	}
 }

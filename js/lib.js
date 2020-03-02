@@ -229,7 +229,7 @@ function Explosion(ex, ey, size){
 	// 每张图的帧图数
 	this.frames = [4,4,1];
 	// 现在的帧图序号
-	this.frameNow = 2;
+	this.frameNow = 0;
 	// 现在是第几张图
 	this.i = 0;
 	this.sx = 0;
